@@ -3,14 +3,20 @@ const app = express();
 const PUERTO = 8088; 
 const productsRouter = require("./routes/products.router.js");
 const cartsRouter = require("./routes/carts.router.js");
-const products = require("./products.js")
+const fs = require("fs/promises")
+let products = []
+
+const getProducts = async () => {
+    products = await fs.readFile("./src/data/products.json", "utf-8");
+    products = JSON.parse(products)
+    console.log(products)
+}
 
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 
-
-
 app.get("/", (req, res) => {
+    getProducts()
     let limit = req.query.limit;
     let limitedProducts= products.slice(0,limit)
 
@@ -21,7 +27,7 @@ app.get("/", (req, res) => {
 
 app.get("/:pid", (req, res) => {
     let { pid } = req.params;
-
+    getProducts()
     let searchedProduct = products.find(product => product.id == pid)
     
     if(searchedProduct)
@@ -36,7 +42,6 @@ app.get("/:pid", (req, res) => {
 app.use("/api/products", productsRouter);
 
 app.use("/api/carts", cartsRouter);
-
  
 app.listen(PUERTO, () => {
 
